@@ -15,7 +15,7 @@ class UAVNetwork:
         self.M = M
         self.N = N
         self.T = T
-        self.debug = debug  # włącz/wyłącz logi
+        self.debug = debug
 
         self.B = np.zeros((M, N))
         self.phi = np.zeros((M, N))
@@ -40,15 +40,13 @@ class UAVNetwork:
             }
             self.flows.append(flow_dict)
 
-        # Opcjonalna walidacja danych wejściowych
         self.validate_inputs()
 
     def _normalize_region(self, region):
         m1, n1, m2, n2 = region
-        # napraw kolejność
         m1, m2 = min(m1, m2), max(m1, m2)
         n1, n2 = min(n1, n2), max(n1, n2)
-        # przytnij do siatki
+
         m1 = max(0, min(self.M - 1, m1))
         m2 = max(0, min(self.M - 1, m2))
         n1 = max(0, min(self.N - 1, n1))
@@ -63,13 +61,13 @@ class UAVNetwork:
         return dx + dy
 
     def validate_inputs(self):
-        # 1) sprawdź regiony i dystans do nich
+
         for f in self.flows:
             d = self._dist_to_region(f['pos'], f['region'])
             if f['t_start'] + d >= self.T:
                 if self.debug:
                     print(f"[WARN] Flow {f['id']} nie zdąży dotrzeć do regionu w T={self.T} (t_start={f['t_start']}, dist={d}).")
-        # 2) sprawdź czy w ogóle są jakieś drony z B>0
+
         pos_Bpos = np.sum(self.B > 0)
         if pos_Bpos == 0 and self.debug:
             print("[WARN] Brak dronów z dodatnią bazową przepustowością B.")
@@ -128,7 +126,7 @@ class UAVNetwork:
             return flow['final_uav']
 
     def schedule_flows_v2(self):
-        # Przygotuj ścieżki do regionów
+
         for flow in self.flows:
             flow['path'] = self.shortest_path_to_region(flow['pos'], flow['region'])
             flow['final_uav'] = flow['path'][-1] if flow['path'] else flow['pos']
@@ -148,12 +146,10 @@ class UAVNetwork:
             candidates = {f['id']: self.neighbors_in_region(cur_pos[f['id']], f['region']) for f in active}
 
             if self.debug and t % 10 == 0:
-                # lekki log co 10 kroków
                 total_B = sum(Bt.values())
                 active_with_cands = sum(1 for f in active if len(candidates[f['id']]) > 0)
                 print(f"[t={t}] active={len(active)}, active_with_cands={active_with_cands}, total_B={total_B:.2f}")
 
-            # Pętla 1
             small_first = sorted(active, key=lambda f: f['remaining'])
             residual_Bt = dict(Bt)
             pinned_assign = {}
@@ -180,7 +176,6 @@ class UAVNetwork:
                 pinned_by_cell[chosen].append(fid)
                 residual_Bt[chosen] = max(0.0, residual_Bt[chosen] - rem)
 
-            # Pętla 2
             rest = [f for f in active if f['id'] not in pinned_assign]
             assign2 = {}
 
@@ -251,7 +246,6 @@ class UAVNetwork:
                 if not changed:
                     break
 
-            # Transmisja
             reserved_sum_by_cell = defaultdict(float)
             for fid, cell in pinned_assign.items():
                 reserved_sum_by_cell[cell] += pinned_reserved[fid]
@@ -265,7 +259,6 @@ class UAVNetwork:
                 if cell is not None:
                     flows_p2_by_cell[cell].append(fid)
 
-            # Pętla 1
             for cell, fids in flows_p1_by_cell.items():
                 x, y = cell
                 for fid in fids:
@@ -276,7 +269,6 @@ class UAVNetwork:
                         f['schedule'].append((t, x, y, send))
                         f['_last_cell'] = cell
 
-            # Pętla 2
             for cell, fids in flows_p2_by_cell.items():
                 x, y = cell
                 total = Bt[cell]
