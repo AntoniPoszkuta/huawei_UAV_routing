@@ -28,14 +28,7 @@ class flow:
         self.n2 = n2
 
 
-    ### FUNKCJA ZMNIEJSZAJACA ILOSC PRZESYLANYCH DANYCH DLA DANEGO FLOW *Q) PO WYBRANIU DRONA (uav) W CHILI T ###
-    ### PRZYKLAD : dla chwili t = 5 algorytm wybral do uzycia jakiegos drona. uzyj tej funkcji aby dokonac ###
-    ### przesylu danych za pomoca drona zmniejszajac Q tego flow ###
-    def selectUAVtoDecreaseQ(self,uav,t):
-        self.Q -= uav.b(t)
-        
-
-with open("test_input_example.txt","r") as file:
+with open("test_input.txt","r") as file:
     file = file.readlines()
     
     header = map(int,(file.pop(0).rstrip()).split(sep=' '))
@@ -51,10 +44,14 @@ with open("test_input_example.txt","r") as file:
         topology[readed_uav.y][readed_uav.x] = readed_uav
     
     ### PRINT KORDYNATOW SIATKI (TESTOWY)
-    for y in topology:
-        for uav in y:
-            print(uav.x,uav.y)
     flows = []
     for row_index in range(M*N,len(file)):
         flows.append(flow(*map(int,(file[row_index].rstrip()).split(sep=' '))))
+
+    UAV_list = []
+    for row in topology:
+        for uav in row:
+            UAV_list.append([uav.x,uav.y,uav.B,uav.fi])
+    uav_info = sorted(UAV_list, key=lambda e: (e[0], e[1]))
     
+    flows = [[f.f,f.x,f.y,f.t,f.Qtotal,f.Q,f.m1,f.n1,f.m2,f.n2] for f in flows]
