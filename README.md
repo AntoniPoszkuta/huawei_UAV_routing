@@ -18,8 +18,7 @@ huawei_UAV_routing/
 ### Pliki
 - **main.py** – punkt wejścia programu; odpowiada za wczytanie danych wejściowych, inicjalizację obiektów i uruchomienie algorytmu trasowania.
 - **algorithm.py** – implementacja logiki obliczeniowej służącej do wyznaczania trasy UAV.
-- **decoding.py** – moduł odpowiedzialny za przetwarzanie i interpretację wyników działania algorytmu.
-- **siatka.py** – definicja siatki (grafu) połączeń między punktami, po których poruszają się UAV.
+- **decoding.py** – moduł odpowiedzialny za przetwarzanie i interpretację wejściowej siatki dronów oraz ruchów danych do przesyłu w czasie.
 - **test_input.txt** – przykładowy plik wejściowy z danymi testowymi.
 
 ## Wymagania systemowe
@@ -56,11 +55,10 @@ Wyniki mogą być wyświetlane w konsoli lub zapisane do pliku, w zależności o
 
 ## Architektura systemu
 Proces działania programu przebiega w następujących etapach:
-1. **Wczytanie danych** – program pobiera informacje o topologii siatki oraz parametrach misji.
-2. **Budowa grafu** – na podstawie danych w `siatka.py` tworzona jest struktura połączeń.
+1. **Wczytanie danych** – program pobiera informacje o topologii siatki oraz parametrach misji z pliku `test_input.py`.
+2. **Budowa siatki** – na podstawie podanych wartości tworzona jest struktura połączeń w `decoding.py`.
 3. **Uruchomienie algorytmu** – moduł `algorithm.py` wyznacza optymalną trasę.
-4. **Dekodowanie wyniku** – `decoding.py` interpretuje i przygotowuje wynik do prezentacji.
-5. **Prezentacja rezultatów** – wynik trasowania jest prezentowany użytkownikowi.
+4. **Prezentacja rezultatów** – wynik trasowania jest prezentowany użytkownikowi.
 
 ## Testowanie
 Projekt zawiera przykładowe dane w pliku `test_input.txt`, które umożliwiają weryfikację poprawności działania programu.
