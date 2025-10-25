@@ -343,44 +343,30 @@ class UAVx:
         else:
             return 0
  
-class flowx:
-    def __init__(self ,f , x, y, t, Qtotal, m1, n1, m2, n2):
-        self.f = f
-        self.x = x
-        self.y = y
-        self.t = t
-        self.Qtotal = Qtotal
-        self.Q = Qtotal
-        self.m1 = m1
-        self.n1 = n1
-        self.m2 = m2
-        self.n2 = n2
-        
 def MAIN_PROGRAM(): 
     data = stdin.read().strip().splitlines()
     
     M, N, FN, T = map(int, data[0].split())
-    topology = [[0 for _ in range(M)] for _ in range(N)]
-
+    topology = [[None for _ in range(M)] for _ in range(N)]
+    
     for i in range(1, 1 + M * N):
         x, y, B, fi = data[i].split()
-        readed_uav = UAVx(int(x), int(y), float(B), int(fi))
-        topology[readed_uav.y][readed_uav.x] = readed_uav
-    
-    flows = []
-    for i in range(1 + M * N, len(data)):
-        flows.append(flowx(*map(int, data[i].split())))
+        u = UAVx(int(x), int(y), float(B), int(fi))
+        topology[u.y][u.x] = u
 
     UAV_list = []
     for row in topology:
         for uav in row:
             UAV_list.append([uav.x, uav.y, uav.B, uav.fi])
 
+    flows_arr = []
+    for i in range(1 + M * N, len(data)):
+        f, x, y, t0, s, m1, n1, m2, n2 = map(int, data[i].split())
+        flows_arr.append([f, x, y, t0, s, m1, n1, m2, n2])
+
     # uav_info = sorted(UAV_list, key=lambda e: (e[0], e[1]))
 
-    flows = [[f.f, f.x, f.y, f.t, f.Qtotal, f.Q, f.m1, f.n1, f.m2, f.n2] for f in flows]
-        
-    network = UAVNetwork(M, N, UAV_list, flows, T)
+    network = UAVNetwork(M, N, UAV_list, flows_arr, T)
     network.schedule_flows()
     network.output_schedule()
 
