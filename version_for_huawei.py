@@ -73,7 +73,7 @@ class UAVNetwork:
 
     def shortest_path_to_region(self, start, region):
         m1, n1, m2, n2 = region
-        visited = [[False for _ in range(N)] for _ in range(M)]
+        visited = [[False for _ in range(self.N)] for _ in range(self.M)]
         parent = dict()
         queue = deque()
         queue.append(start)
@@ -319,13 +319,17 @@ class UAVNetwork:
             scores.append((flow['id'], flow_score))
         return scores
 
-    def print_schedule(self):
+    def print_and_return_schedule(self):
+        schedule = []
         for flow in self.flows:
             p = len(flow['schedule'])
             print(flow['id'], p)
+            schedule.append([flow['id'],p])
             for rec in flow['schedule']:
                 t, x, y, z = rec
                 print(t, x, y, z)
+                schedule.append([t,x,y,z])
+        return schedule
                 
 class UAVx:
     def __init__(self,x,y,B,fi):
@@ -355,37 +359,36 @@ class flowx:
         self.n1 = n1
         self.m2 = m2
         self.n2 = n2
+        
+def MAIN_PROGRAM(input_file): 
+    with open(str(input_file),"r") as file:
+        file = file.readlines()
+        
+        header = map(int,(file.pop(0).rstrip()).split(sep=' '))
+        ### ODCZYTANIE : SZEROKOŚCI SIATKI (M) WYSOKOSCI SIATKI (N), ILOSC FLOWOW DO OBSLUZENIA (FN), CZAS SYMULACJI (T) ###
+        M, N, FN, T = header
+        
+        ## UTWORZENIE PUSTEJ SIATKI
+        topology = [[0 for _ in range(M)] for _ in range(N)]
+        
+        ### TWORZENIE SIATKI PELNEJ UAV O WYMIARACH M X N (KAZDY KOORDYNAT TO ODDZIELNY OBIEKT KLASY UAV)
+        for row_index in range(M*N):
+            readed_uav = UAVx(*map(int,(file[row_index].rstrip()).split(sep=' ')))
+            topology[readed_uav.y][readed_uav.x] = readed_uav
+        
+        ### PRINT KORDYNATOW SIATKI (TESTOWY)
+        flows = []
+        for row_index in range(M*N,len(file)):
+            flows.append(flowx(*map(int,(file[row_index].rstrip()).split(sep=' '))))
 
-
-with open("test_input.txt","r") as file:
-    file = file.readlines()
-    
-    header = map(int,(file.pop(0).rstrip()).split(sep=' '))
-    ### ODCZYTANIE : SZEROKOŚCI SIATKI (M) WYSOKOSCI SIATKI (N), ILOSC FLOWOW DO OBSLUZENIA (FN), CZAS SYMULACJI (T) ###
-    M, N, FN, T = header
-    
-    ## UTWORZENIE PUSTEJ SIATKI
-    topology = [[0 for _ in range(M)] for _ in range(N)]
-    
-    ### TWORZENIE SIATKI PELNEJ UAV O WYMIARACH M X N (KAZDY KOORDYNAT TO ODDZIELNY OBIEKT KLASY UAV)
-    for row_index in range(M*N):
-        readed_uav = UAVx(*map(int,(file[row_index].rstrip()).split(sep=' ')))
-        topology[readed_uav.y][readed_uav.x] = readed_uav
-    
-    ### PRINT KORDYNATOW SIATKI (TESTOWY)
-    flows = []
-    for row_index in range(M*N,len(file)):
-        flows.append(flowx(*map(int,(file[row_index].rstrip()).split(sep=' '))))
-
-    UAV_list = []
-    for row in topology:
-        for uav in row:
-            UAV_list.append([uav.x,uav.y,uav.B,uav.fi])
-    uav_info = sorted(UAV_list, key=lambda e: (e[0], e[1]))
-    
-    flows = [[f.f,f.x,f.y,f.t,f.Qtotal,f.Q,f.m1,f.n1,f.m2,f.n2] for f in flows]
-    
-network = UAVNetwork(M, N, UAV_list, flows, T)
-network.schedule_flows()
-scores = network.compute_score()
-network.print_schedule()
+        UAV_list = []
+        for row in topology:
+            for uav in row:
+                UAV_list.append([uav.x,uav.y,uav.B,uav.fi])
+        uav_info = sorted(UAV_list, key=lambda e: (e[0], e[1]))
+        
+        flows = [[f.f,f.x,f.y,f.t,f.Qtotal,f.Q,f.m1,f.n1,f.m2,f.n2] for f in flows]
+        
+    network = UAVNetwork(M, N, UAV_list, flows, T)
+    network.schedule_flows()
+    return network.print_and_return_schedule()
